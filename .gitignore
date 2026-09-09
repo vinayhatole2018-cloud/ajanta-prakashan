@@ -1,0 +1,30 @@
+# dependencies
+/node_modules
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# env
+.env
+.env.local
+.env.*.local
+
+# firebase
+serviceAccountKey.json
+.firebase/
+
+# misc
+.DS_Store
+*.pem
+npm-debug.log*
+next-env.d.ts
+tsconfig.tsbuildinfo
+
+# source brochures (large, not part of the deployed app)
+/_source_assets/
+
+.vercel

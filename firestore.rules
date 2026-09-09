@@ -1,0 +1,121 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ----------------------------------------------------------------
+    // Admin authorization: a request is from an admin only if the caller
+    // is authenticated AND their UID is registered in `admins/{uid}` AND
+    // that record is active AND has role == "admin". This is the single
+    // source of truth for admin access — never trust client-side state.
+    // ----------------------------------------------------------------
+    function isAdmin() {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.active == true &&
+        get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isValidRegistration(data) {
+      return data.keys().hasAll(['fullName', 'mobile', 'city', 'designation', 'institution']) &&
+        data.fullName is string && data.fullName.size() >= 3 && data.fullName.size() <= 120 &&
+        data.mobile is string && data.mobile.matches('^[6-9][0-9]{9}$') &&
+        data.city is string && data.city.size() >= 2 && data.city.size() <= 100 &&
+        data.designation in ['Principal', 'Professor', 'Associate Professor', 'Assistant Professor', 'Scholar', 'Other'] &&
+        data.institution is string && data.institution.size() >= 2 && data.institution.size() <= 200 &&
+        (!('email' in data) || data.email == null || data.email is string) &&
+        (!('state' in data) || data.state == null || data.state is string) &&
+        data.notificationEnabled is bool;
+    }
+
+    // A visitor "completed registration" once a users/{their own auth uid}
+    // document exists. The uid comes from silent, credential-free Firebase
+    // Anonymous Auth (see src/firebase/auth.ts) — never email/password, never
+    // a visible login screen. This is what gates conference content.
+    function isRegistered() {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    // ---------------- users (public registrations) ----------------
+    // Document ID == the registrant's own (anonymous) auth uid. A visitor may
+    // only create/read/update their OWN record (their profile) — never
+    // anyone else's, and never list/query the collection. Firestore treats a
+    // write to an already-existing doc as `update`, so re-registering from
+    // the same device edits the same profile instead of erroring, which is
+    // what powers the "edit my profile" flow.
+    match /users/{userId} {
+      allow get: if (request.auth != null && request.auth.uid == userId) || isAdmin();
+      allow list: if isAdmin();
+      allow create, update: if
+        (request.auth != null && request.auth.uid == userId && isValidRegistration(request.resource.data)) ||
+        isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ---------------- conferences ----------------
+    // Gated: only visible to a visitor who has completed registration (or an
+    // admin). This is enforced here, not just in the UI — see isRegistered().
+    match /conferences/{conferenceId} {
+      allow read: if (resource.data.status == 'published' && isRegistered()) || isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ---------------- events ----------------
+    match /events/{eventId} {
+      allow read: if resource.data.status == 'published' || isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ---------------- notifications ----------------
+    match /notifications/{notificationId} {
+      allow read: if resource.data.isPublished == true || isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ---------------- committees ----------------
+    // Committee members are only ever shown embedded in a (gated) conference
+    // page, so they carry the same registration gate.
+    match /committees/{committeeId} {
+      allow read: if isRegistered() || isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ---------------- media (external URL records) ----------------
+    match /media/{mediaId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+      // Firestore rules cannot inspect the URL's protocol string safely for
+      // every field; the https:// requirement is enforced by the app's
+      // Zod schemas and by never exposing a file-upload path.
+    }
+
+    // ---------------- settings ----------------
+    match /settings/{docId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ---------------- admins ----------------
+    match /admins/{uid} {
+      // A signed-in user may read ONLY their own admin record (needed for
+      // the client-side authorization check). No one may list this
+      // collection or write to it from the app — admin accounts are
+      // provisioned via the Firebase Console / Admin SDK only.
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // ---------------- adminLogs ----------------
+    match /adminLogs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin();
+      allow update, delete: if false; // append-only audit trail
+    }
+
+    // Deny everything else by default.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
