@@ -8,14 +8,16 @@ import { Section } from "@/components/public/Section";
 import { ConferenceCard } from "@/components/public/ConferenceCard";
 import { EventCard } from "@/components/public/EventCard";
 import { NotificationCard } from "@/components/public/NotificationCard";
+import { LandingGallery } from "@/components/public/LandingGallery";
 import { EmptyState } from "@/components/common/EmptyState";
 import { Skeleton } from "@/components/common/LoadingSpinner";
 import { getPublishedConferences } from "@/services/conferenceService";
 import { getPublishedEvents } from "@/services/eventService";
 import { getPublishedNotifications } from "@/services/notificationService";
+import { getActiveLandingImages } from "@/services/landingImageService";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { usePublicAuth } from "@/contexts/PublicAuthContext";
-import type { Conference, EventItem, NotificationItem } from "@/types";
+import type { Conference, EventItem, LandingImage, NotificationItem } from "@/types";
 
 const WHY_JOIN = [
   { icon: GraduationCap, title: "Peer-Reviewed Publication", text: "Accepted papers are published in Ajanta Prakashan's UGC-listed journals." },
@@ -32,6 +34,7 @@ export default function HomePage() {
   const [past, setPast] = useState<Conference[] | null>(null);
   const [events, setEvents] = useState<EventItem[] | null>(null);
   const [notifications, setNotifications] = useState<NotificationItem[] | null>(null);
+  const [galleryImages, setGalleryImages] = useState<LandingImage[]>([]);
 
   useEffect(() => {
     if (!canSeeConferences) return; // conferences are gated behind registration — don't even attempt the read
@@ -50,11 +53,20 @@ export default function HomePage() {
     getPublishedNotifications({ pageSize: 4 })
       .then((r) => setNotifications(r.items))
       .catch(() => setNotifications([]));
+    getActiveLandingImages()
+      .then(setGalleryImages)
+      .catch(() => setGalleryImages([]));
   }, []);
 
   return (
     <>
       <Hero />
+
+      {galleryImages.length > 0 && (
+        <Section title="Gallery" subtitle="Moments from our conferences and events.">
+          <LandingGallery images={galleryImages} />
+        </Section>
+      )}
 
       <Section title="Upcoming Conferences" subtitle="National and international conferences currently open for registration." viewAllHref="/conferences?tab=upcoming">
         {authLoading ? (

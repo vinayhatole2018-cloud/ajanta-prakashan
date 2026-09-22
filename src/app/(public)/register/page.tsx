@@ -39,7 +39,7 @@ function RegisterPageInner() {
   // Already registered on this device — nothing to do here, send them onward.
   useEffect(() => {
     if (!authLoading && profile && !submitted) {
-      router.replace(next || (conferenceId ? `/conferences/${conferenceId}` : "/profile"));
+      router.replace(next || (conferenceId ? `/conferences/view?id=${conferenceId}` : "/profile"));
     }
   }, [authLoading, profile, submitted, next, conferenceId, router]);
 
@@ -97,7 +97,7 @@ function RegisterPageInner() {
               </a>
             )}
             <Link
-              href={next || (conferenceId ? `/conferences/${conferenceId}` : "/conferences")}
+              href={next || (conferenceId ? `/conferences/view?id=${conferenceId}` : "/conferences")}
               className="inline-flex items-center justify-center rounded-lg border border-emerald-300 bg-white px-5 py-2.5 text-sm font-medium text-emerald-800 hover:bg-emerald-50"
             >
               {conferenceId ? "View Conference" : "Browse Conferences"}

@@ -17,7 +17,13 @@ export function RequireRegistration({ children }: { children: React.ReactNode })
   const { loading, profile, isAdmin } = usePublicAuth();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const conferenceId = searchParams.get("conferenceId") ?? undefined;
+  // The conference detail page identifies itself via ?id= (a query param,
+  // not a path segment — see /conferences/view — so the whole route is a
+  // static file the free Firebase Hosting plan can serve). Preserve the
+  // full current URL (path + query) in `next`, not just the pathname, or
+  // registering from a conference page would lose which conference it was.
+  const conferenceId = searchParams.get("id") ?? undefined;
+  const currentUrl = searchParams.toString() ? `${pathname}?${searchParams.toString()}` : pathname;
 
   if (loading) {
     return (
@@ -30,8 +36,8 @@ export function RequireRegistration({ children }: { children: React.ReactNode })
 
   if (!profile && !isAdmin) {
     const registerHref = conferenceId
-      ? `/register?conferenceId=${conferenceId}&next=${encodeURIComponent(pathname)}`
-      : `/register?next=${encodeURIComponent(pathname)}`;
+      ? `/register?conferenceId=${conferenceId}&next=${encodeURIComponent(currentUrl)}`
+      : `/register?next=${encodeURIComponent(currentUrl)}`;
     return (
       <div className="container-page py-20">
         <div className="mx-auto max-w-md rounded-xl border border-ink-200 bg-white p-8 text-center shadow-card">

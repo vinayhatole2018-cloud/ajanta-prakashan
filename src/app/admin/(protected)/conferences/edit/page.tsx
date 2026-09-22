@@ -1,7 +1,7 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { ConferenceForm, conferenceToFormValues, formValuesToConferenceInput, type ConferenceFormValues } from "@/components/admin/ConferenceForm";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
@@ -12,8 +12,8 @@ import { getConferenceById, updateConference } from "@/services/conferenceServic
 import { logAdminAction } from "@/services/adminService";
 import type { Conference } from "@/types";
 
-export default function EditConferencePage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+function EditConferenceInner() {
+  const id = useSearchParams().get("id") || "";
   const router = useRouter();
   const toast = useToast();
   const { admin } = useAdminAuth();
@@ -21,6 +21,10 @@ export default function EditConferencePage({ params }: { params: Promise<{ id: s
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
+    if (!id) {
+      setConference(null);
+      return;
+    }
     getConferenceById(id).then(setConference);
   }, [id]);
 
@@ -53,5 +57,13 @@ export default function EditConferencePage({ params }: { params: Promise<{ id: s
         onSubmit={(v) => save(v, "published")}
       />
     </div>
+  );
+}
+
+export default function EditConferencePage() {
+  return (
+    <Suspense fallback={<LoadingSpinner label="Loading conference…" />}>
+      <EditConferenceInner />
+    </Suspense>
   );
 }

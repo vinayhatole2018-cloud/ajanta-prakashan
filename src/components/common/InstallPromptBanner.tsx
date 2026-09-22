@@ -12,11 +12,15 @@ import { usePWAInstall } from "@/hooks/usePWAInstall";
  * silence-able forever like a typical "don't show again" banner.
  */
 export function InstallPromptBanner() {
-  const { canInstall, isIOS, isStandalone, promptInstall } = usePWAInstall();
+  const { canInstall, isIOS, isMobile, isStandalone, promptInstall } = usePWAInstall();
   const [dismissed, setDismissed] = useState(false);
 
   if (isStandalone || dismissed) return null;
-  if (!canInstall && !isIOS) return null; // nothing actionable to tell them yet
+  // Android/desktop Chrome decides in its own time when to fire the native
+  // install event — without this, a visitor on mobile who lands before that
+  // fires would see nothing at all. Show a generic fallback for any mobile
+  // browser in that gap, not just once `canInstall`/`isIOS` are known.
+  if (!canInstall && !isIOS && !isMobile) return null;
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 border-t border-ink-200 bg-white/98 px-4 py-3 shadow-[0_-4px_16px_rgba(0,0,0,0.08)] backdrop-blur">
@@ -30,6 +34,8 @@ export function InstallPromptBanner() {
             <p className="mt-0.5 flex items-center gap-1 text-xs text-ink-500">
               Tap <Share className="mx-0.5 inline h-3.5 w-3.5" /> Share, then &quot;Add to Home Screen&quot;
             </p>
+          ) : !canInstall && isMobile ? (
+            <p className="mt-0.5 text-xs text-ink-500">Open your browser menu and choose &quot;Add to Home Screen&quot; / &quot;Install app&quot;</p>
           ) : (
             <p className="mt-0.5 text-xs text-ink-500">Quick access, offline support, no app store needed.</p>
           )}

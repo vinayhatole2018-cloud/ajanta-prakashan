@@ -1,7 +1,8 @@
 "use client";
 
-import { Suspense, use, useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Calendar, Clock, IndianRupee, Mail, MapPin, Phone, Radio } from "lucide-react";
 import { EmptyState } from "@/components/common/EmptyState";
 import { Skeleton } from "@/components/common/LoadingSpinner";
@@ -16,22 +17,26 @@ import { getCommitteesByConference } from "@/services/committeeService";
 import type { CommitteeMember, Conference } from "@/types";
 import { formatDate } from "@/utils/date";
 
-export default function ConferenceDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default function ConferenceDetailPage() {
   return (
     <Suspense fallback={<div className="container-page py-12"><Skeleton className="h-64 w-full rounded-xl" /></div>}>
       <RequireRegistration>
-        <ConferenceDetailInner params={params} />
+        <ConferenceDetailInner />
       </RequireRegistration>
     </Suspense>
   );
 }
 
-function ConferenceDetailInner({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+function ConferenceDetailInner() {
+  const id = useSearchParams().get("id") || "";
   const [conference, setConference] = useState<Conference | null | undefined>(undefined);
   const [committee, setCommittee] = useState<CommitteeMember[]>([]);
 
   useEffect(() => {
+    if (!id) {
+      setConference(null);
+      return;
+    }
     getConferenceById(id).then((c) => {
       setConference(c);
       if (c) document.title = `${c.title} | Ajanta Prakashan`;

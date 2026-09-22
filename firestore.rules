@@ -81,6 +81,14 @@ service cloud.firestore {
       allow create, update, delete: if isAdmin();
     }
 
+    // ---------------- landingImages (public home page gallery) ----------------
+    // Unlike conferences/committees, these are NOT gated behind registration —
+    // the gallery is meant to be visible to every visitor, registered or not.
+    match /landingImages/{imageId} {
+      allow read: if resource.data.active == true || isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+
     // ---------------- media (external URL records) ----------------
     match /media/{mediaId} {
       allow read: if true;

@@ -104,12 +104,12 @@ export default function AdminConferencesPage() {
         pagination={{ pageIndex, hasPrevious, hasMore, onPrevious: goPrevious, onNext: goNext }}
         actions={(c) => (
           <>
-            <Link href={`/conferences/${c.id}`} target="_blank">
+            <Link href={`/conferences/view?id=${c.id}`} target="_blank">
               <Button variant="ghost" size="sm">
                 View
               </Button>
             </Link>
-            <Link href={`/admin/conferences/${c.id}/edit`}>
+            <Link href={`/admin/conferences/edit?id=${c.id}`}>
               <Button variant="ghost" size="sm">
                 <Pencil className="h-4 w-4" />
               </Button>

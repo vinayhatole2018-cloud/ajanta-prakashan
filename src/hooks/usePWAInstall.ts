@@ -42,9 +42,11 @@ export function usePWAInstall() {
   const [canInstall, setCanInstall] = useState(false);
   const [isStandalone, setIsStandalone] = useState(isStandaloneNow());
   const [isIOS, setIsIOS] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     setIsIOS(isIOSDevice());
+    setIsMobile(isMobileDevice());
     setIsStandalone(isStandaloneNow());
     if (window.__pwaInstallEvent) setCanInstall(true);
 
@@ -72,5 +74,5 @@ export function usePWAInstall() {
     }
   }
 
-  return { canInstall, isIOS, isStandalone, promptInstall };
+  return { canInstall, isIOS, isMobile, isStandalone, promptInstall };
 }

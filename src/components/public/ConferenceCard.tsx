@@ -24,7 +24,7 @@ export function ConferenceCard({ conference }: { conference: Conference }) {
           </p>
         </div>
         <Link
-          href={`/conferences/${conference.id}`}
+          href={`/conferences/view?id=${conference.id}`}
           className="mt-5 inline-flex items-center justify-center rounded-lg border border-brand-500 px-4 py-2 text-sm font-medium text-brand-600 hover:bg-brand-50"
         >
           <Radio className="mr-2 h-4 w-4" /> View Details

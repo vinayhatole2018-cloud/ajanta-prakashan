@@ -4,6 +4,7 @@ export * from "./Event";
 export * from "./Notification";
 export * from "./Committee";
 export * from "./Media";
+export * from "./LandingImage";
 export * from "./User";
 export * from "./Admin";
 export * from "./Settings";

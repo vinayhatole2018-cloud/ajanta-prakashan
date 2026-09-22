@@ -3,6 +3,7 @@ import { Footer } from "@/components/public/Footer";
 import { OfflineBanner } from "@/components/public/OfflineBanner";
 import { InstallPromptBanner } from "@/components/common/InstallPromptBanner";
 import { FloatingWhatsAppButton } from "@/components/public/FloatingWhatsAppButton";
+import { PopupBanner } from "@/components/public/PopupBanner";
 import { PublicAuthProvider } from "@/contexts/PublicAuthContext";
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
@@ -15,6 +16,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         <Footer />
         <FloatingWhatsAppButton />
         <InstallPromptBanner />
+        <PopupBanner />
       </div>
     </PublicAuthProvider>
   );
