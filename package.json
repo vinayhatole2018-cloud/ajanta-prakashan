@@ -11,7 +11,7 @@
     "create-admin": "tsx scripts/create-admin.ts"
   },
   "dependencies": {
-    "next": "^15.5.4",
+    "next": "^15.5.27",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "firebase": "^11.10.0",
